@@ -44,36 +44,15 @@
   /* MAIN CONTENT */
   .lab-main { padding: 80px 48px; }
 
-  /* ADD PROJECT PANEL */
-  .add-panel { background: var(--black); color: white; padding: 40px 48px; margin-bottom: 56px; display: flex; align-items: center; justify-content: space-between; gap: 32px; position: relative; }
-  .add-panel::after { content: ''; position: absolute; bottom: -6px; right: -6px; width: 100%; height: 100%; border: 1.5px solid var(--black); pointer-events: none; }
-  .add-panel-text {}
-  .add-panel-title { font-family: 'Poppins', sans-serif; font-size: 20px; font-weight: 700; margin-bottom: 6px; }
-  .add-panel-sub { font-family: 'DM Mono', monospace; font-size: 11px; color: rgba(255,255,255,0.4); letter-spacing: 1px; }
-  .btn-add { font-family: 'DM Mono', monospace; font-size: 11px; letter-spacing: 2px; text-transform: uppercase; background: var(--terminal-green); color: var(--black); border: none; padding: 14px 28px; cursor: pointer; font-weight: 600; white-space: nowrap; transition: opacity 0.2s; flex-shrink: 0; }
-  .btn-add:hover { opacity: 0.85; }
-
-  /* MODAL */
-  .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 500; align-items: center; justify-content: center; padding: 24px; }
-  .modal-overlay.open { display: flex; }
-  .modal { background: var(--off-white); width: 100%; max-width: 640px; max-height: 90vh; overflow-y: auto; position: relative; }
-  .modal-header { background: var(--black); color: white; padding: 28px 36px; display: flex; align-items: center; justify-content: space-between; }
-  .modal-title { font-family: 'Poppins', sans-serif; font-size: 18px; font-weight: 700; }
-  .modal-close { background: none; border: none; color: rgba(255,255,255,0.5); font-size: 22px; cursor: pointer; transition: color 0.2s; }
-  .modal-close:hover { color: white; }
-  .modal-body { padding: 36px; }
-  .modal-group { margin-bottom: 20px; }
-  .modal-label { display: block; font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--gray-dark); margin-bottom: 8px; }
-  .modal-input, .modal-textarea, .modal-select { width: 100%; background: white; border: 1px solid var(--gray-light); color: var(--black); padding: 12px 14px; font-family: 'DM Sans', sans-serif; font-size: 14px; outline: none; transition: border-color 0.2s; }
-  .modal-input:focus, .modal-textarea:focus, .modal-select:focus { border-color: var(--black); }
-  .modal-textarea { resize: vertical; min-height: 100px; }
-  .modal-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-  .modal-hint { font-size: 12px; color: var(--gray-mid); margin-top: 5px; }
-  .modal-footer { padding: 24px 36px 36px; display: flex; gap: 12px; }
-  .btn-save { flex: 1; font-family: 'DM Mono', monospace; font-size: 11px; letter-spacing: 2px; text-transform: uppercase; background: var(--black); color: white; border: none; padding: 14px; cursor: pointer; transition: background 0.2s; }
-  .btn-save:hover { background: var(--gray-dark); }
-  .btn-cancel { font-family: 'DM Mono', monospace; font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase; background: transparent; color: var(--gray-dark); border: 1px solid var(--gray-light); padding: 14px 24px; cursor: pointer; transition: border-color 0.2s; }
-  .btn-cancel:hover { border-color: var(--black); }
+  /* WIDGET INSPIRATION (remplace l'ancien add-panel) */
+  .inspire-panel { background: var(--black); color: white; padding: 40px 48px; margin-bottom: 56px; display: flex; align-items: center; justify-content: space-between; gap: 32px; position: relative; flex-wrap: wrap; }
+  .inspire-panel::after { content: ''; position: absolute; bottom: -6px; right: -6px; width: 100%; height: 100%; border: 1.5px solid var(--black); pointer-events: none; }
+  .inspire-text { flex: 2; }
+  .inspire-title { font-family: 'Poppins', sans-serif; font-size: 20px; font-weight: 700; margin-bottom: 8px; display: flex; align-items: center; gap: 12px; }
+  .inspire-quote { font-family: 'DM Mono', monospace; font-size: 14px; color: rgba(255,255,255,0.8); line-height: 1.5; margin-top: 12px; }
+  .inspire-author { font-size: 11px; letter-spacing: 1px; text-transform: uppercase; color: var(--terminal-green); margin-top: 10px; }
+  .btn-inspire { font-family: 'DM Mono', monospace; font-size: 11px; letter-spacing: 2px; text-transform: uppercase; background: var(--terminal-green); color: var(--black); border: none; padding: 14px 28px; cursor: pointer; font-weight: 600; white-space: nowrap; transition: opacity 0.2s, transform 0.1s; flex-shrink: 0; }
+  .btn-inspire:hover { opacity: 0.85; transform: scale(0.98); }
 
   /* FILTERS */
   .lab-filters { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 40px; }
@@ -87,22 +66,16 @@
   .lab-empty-text { font-family: 'DM Mono', monospace; font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: var(--gray-mid); }
 
   /* CARDS */
-  .lab-card { background: var(--off-white); display: flex; flex-direction: column; transition: background 0.25s; overflow: hidden; position: relative; }
+  .lab-card { background: var(--off-white); display: flex; flex-direction: column; transition: background 0.25s; overflow: hidden; position: relative; cursor: pointer; }
   .lab-card:hover { background: white; }
   .lab-card-visual { aspect-ratio: 16/9; background: var(--black); position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center; }
   .lab-card-visual img { width: 100%; height: 100%; object-fit: cover; opacity: 0.85; transition: opacity 0.3s, transform 0.4s ease; }
   .lab-card:hover .lab-card-visual img { opacity: 1; transform: scale(1.04); }
   .lab-card-placeholder { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 10px; }
-  .lab-card-placeholder-icon { font-size: 32px; opacity: 0.15; color: white; }
-  .lab-card-placeholder-label { font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: 2px; text-transform: uppercase; color: rgba(255,255,255,0.2); }
+  .lab-card-placeholder-icon { font-size: 48px; opacity: 0.5; color: white; }
+  .lab-card-placeholder-label { font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: 2px; text-transform: uppercase; color: rgba(255,255,255,0.4); }
   .lab-card-overlay { position: absolute; inset: 0; background: linear-gradient(to top, rgba(0,0,0,0.5), transparent 60%); opacity: 0; transition: opacity 0.3s; }
   .lab-card:hover .lab-card-overlay { opacity: 1; }
-  .lab-card-actions { position: absolute; top: 10px; right: 10px; display: flex; gap: 6px; opacity: 0; transition: opacity 0.2s; z-index: 2; }
-  .lab-card:hover .lab-card-actions { opacity: 1; }
-  .btn-card-action { font-size: 12px; padding: 5px 10px; border: none; cursor: pointer; font-family: 'DM Mono', monospace; letter-spacing: 1px; transition: opacity 0.2s; }
-  .btn-edit { background: white; color: var(--black); }
-  .btn-delete { background: #ff4444; color: white; }
-  .btn-card-action:hover { opacity: 0.8; }
   .lab-card-body { padding: 24px 24px 28px; flex: 1; display: flex; flex-direction: column; }
   .lab-card-category { font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: 2px; text-transform: uppercase; color: var(--terminal-green); margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
   .lab-card-category::before { content: ''; display: inline-block; width: 14px; height: 1px; background: var(--terminal-green); }
@@ -132,9 +105,8 @@
     .lab-hero { padding: 110px 24px 60px; }
     .lab-hero-stats { gap: 28px; flex-wrap: wrap; }
     .lab-main { padding: 48px 24px; }
-    .add-panel { flex-direction: column; align-items: flex-start; padding: 28px 24px; }
+    .inspire-panel { flex-direction: column; align-items: flex-start; padding: 28px 24px; }
     .lab-grid { grid-template-columns: 1fr; }
-    .modal-row { grid-template-columns: 1fr; }
     footer { flex-direction: column; gap: 20px; text-align: center; padding: 36px 24px; }
   }
 </style>
@@ -171,13 +143,16 @@
 <!-- MAIN -->
 <div class="lab-main">
 
-  <!-- ADD PANEL -->
-  <div class="add-panel">
-    <div class="add-panel-text">
-      <div class="add-panel-title">Ajouter un projet</div>
-      <div class="add-panel-sub">&gt;_ Les projets sont stockés localement dans votre navigateur</div>
+  <!-- NOUVEAU WIDGET : CITATIONS ALÉATOIRES -->
+  <div class="inspire-panel">
+    <div class="inspire-text">
+      <div class="inspire-title">
+        <span>💡</span> Citation d'inspiration
+      </div>
+      <div class="inspire-quote" id="inspireQuote">« Le code est comme la poésie, il doit être à la fois élégant et fonctionnel. »</div>
+      <div class="inspire-author" id="inspireAuthor">— ALP & TEK Lab</div>
     </div>
-    <button class="btn-add" onclick="openModal()">+ Nouveau projet</button>
+    <button class="btn-inspire" id="refreshQuoteBtn">⟳ Nouvelle citation</button>
   </div>
 
   <!-- FILTERS -->
@@ -204,217 +179,181 @@
   <div class="footer-copy">© 2026 ALP & TEK SASU</div>
 </footer>
 
-<!-- MODAL -->
-<div class="modal-overlay" id="modalOverlay">
-  <div class="modal">
-    <div class="modal-header">
-      <span class="modal-title" id="modalTitle">&gt;_ Nouveau projet</span>
-      <button class="modal-close" onclick="closeModal()">✕</button>
-    </div>
-    <div class="modal-body">
-      <input type="hidden" id="editId">
-      <div class="modal-group">
-        <label class="modal-label">Titre du projet *</label>
-        <input type="text" class="modal-input" id="fieldTitle" placeholder="Mon super projet">
-      </div>
-      <div class="modal-row">
-        <div class="modal-group">
-          <label class="modal-label">Catégorie *</label>
-          <select class="modal-select" id="fieldCategory">
-            <option value="java">Java</option>
-            <option value="javascript">JavaScript</option>
-            <option value="web">Web App</option>
-            <option value="api">API / Dashboard</option>
-            <option value="game">Jeux</option>
-            <option value="autre">Autre</option>
-          </select>
-        </div>
-        <div class="modal-group">
-          <label class="modal-label">Statut</label>
-          <select class="modal-select" id="fieldStatus">
-            <option value="wip">En cours</option>
-            <option value="live">Live</option>
-            <option value="pause">En pause</option>
-          </select>
-        </div>
-      </div>
-      <div class="modal-group">
-        <label class="modal-label">Description *</label>
-        <textarea class="modal-textarea" id="fieldDesc" placeholder="Décrivez votre projet en quelques phrases..."></textarea>
-      </div>
-      <div class="modal-group">
-        <label class="modal-label">Stack technique</label>
-        <input type="text" class="modal-input" id="fieldStack" placeholder="Java, Spring Boot, Docker">
-        <div class="modal-hint">Séparez les technos par des virgules</div>
-      </div>
-      <div class="modal-group">
-        <label class="modal-label">URL image / capture d'écran</label>
-        <input type="text" class="modal-input" id="fieldImage" placeholder="https://... ou laissez vide">
-        <div class="modal-hint">URL d'une image hébergée, ou laissez vide pour l'icône auto</div>
-      </div>
-    </div>
-    <div class="modal-footer">
-      <button class="btn-cancel" onclick="closeModal()">Annuler</button>
-      <button class="btn-save" onclick="saveProject()">Enregistrer le projet →</button>
-    </div>
-  </div>
-</div>
-
 <script>
-  // ── STORAGE ──────────────────────────────────────────
-  const STORAGE_KEY = 'alptek_lab_projects';
+  // --------------------------------------------------------------
+  // LISTE STATIQUE DE PROJETS (AJOUTER, MODIFIER LIBREMENT)
+  // --------------------------------------------------------------
+  const PROJECTS_LIST = [
+    {
+      id: 'rift-game',
+      title: 'Rift Game',
+      desc: 'Un jeu d’arcade rythmé et immersif. Esquivez, récoltez, et survivez dans l’univers déchiré du Rift. Développé avec JavaScript pur et une direction artistique unique.',
+      category: 'game',
+      status: 'live',   // 'live', 'wip' ou 'pause'
+      stack: 'HTML5, CSS3, JavaScript, Canvas API',
+      image: 'images/rift-game.png',        // Laisser vide pour l'icône par défaut, ou mettre une URL
+      redirectUrl: 'rift-game.html'
+    },
+    // On peut ajouter d'autres projets ici, par exemple :
+    // {
+    //   id: 'dashboard-twitter',
+    //   title: 'Social Pulse',
+    //   desc: 'Dashboard analytics pour Twitter et Reddit, scraping et visualisation en temps réel.',
+    //   category: 'api',
+    //   status: 'wip',
+    //   stack: 'Node.js, Express, Chart.js, OAuth',
+    //   image: '',
+    //   redirectUrl: 'https://exemple.com'   // lien externe ou interne
+    // },
+    // {
+    //   id: 'portfolio-3d',
+    //   title: 'Portfolio 3D',
+    //   desc: 'Expérience interactive avec Three.js, animations immersives et particules.',
+    //   category: 'web',
+    //   status: 'live',
+    //   stack: 'Three.js, GSAP, WebGL',
+    //   image: '',
+    //   redirectUrl: 'https://demo-3d.com'
+    // }
+  ];
 
-  function loadProjects() {
-    try {
-      return JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
-    } catch(e) { return []; }
+  // ---------- Mise à jour des compteurs ----------
+  function updateStats() {
+    const total = PROJECTS_LIST.length;
+    const live = PROJECTS_LIST.filter(p => p.status === 'live').length;
+    const wip = PROJECTS_LIST.filter(p => p.status === 'wip').length;
+    document.getElementById('statTotal').textContent = total;
+    document.getElementById('statLive').textContent = live;
+    document.getElementById('statWip').textContent = wip;
   }
 
-  function saveProjects(projects) {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(projects));
-  }
+  // ---------- Rendu des cartes avec filtres ----------
+  let currentFilter = 'all';
 
-  // ── MODAL ─────────────────────────────────────────────
-  let editingId = null;
-
-  function openModal(id) {
-    editingId = id || null;
-    document.getElementById('modalTitle').textContent = id ? '>_ Modifier le projet' : '>_ Nouveau projet';
-    if (id) {
-      const p = loadProjects().find(p => p.id === id);
-      if (p) {
-        document.getElementById('fieldTitle').value = p.title;
-        document.getElementById('fieldCategory').value = p.category;
-        document.getElementById('fieldStatus').value = p.status;
-        document.getElementById('fieldDesc').value = p.desc;
-        document.getElementById('fieldStack').value = p.stack;
-        document.getElementById('fieldImage').value = p.image || '';
-      }
-    } else {
-      document.getElementById('fieldTitle').value = '';
-      document.getElementById('fieldCategory').value = 'java';
-      document.getElementById('fieldStatus').value = 'wip';
-      document.getElementById('fieldDesc').value = '';
-      document.getElementById('fieldStack').value = '';
-      document.getElementById('fieldImage').value = '';
-    }
-    document.getElementById('modalOverlay').classList.add('open');
-  }
-
-  function closeModal() {
-    document.getElementById('modalOverlay').classList.remove('open');
-    editingId = null;
-  }
-
-  document.getElementById('modalOverlay').addEventListener('click', function(e) {
-    if (e.target === this) closeModal();
-  });
-
-  // ── SAVE ──────────────────────────────────────────────
-  function saveProject() {
-    const title = document.getElementById('fieldTitle').value.trim();
-    const desc  = document.getElementById('fieldDesc').value.trim();
-    if (!title || !desc) { alert('Le titre et la description sont requis.'); return; }
-
-    const projects = loadProjects();
-    const project = {
-      id:       editingId || Date.now().toString(),
-      title,
-      category: document.getElementById('fieldCategory').value,
-      status:   document.getElementById('fieldStatus').value,
-      desc,
-      stack:    document.getElementById('fieldStack').value.trim(),
-      image:    document.getElementById('fieldImage').value.trim(),
-      createdAt: editingId ? (projects.find(p => p.id === editingId) || {}).createdAt || Date.now() : Date.now()
-    };
-
-    if (editingId) {
-      const idx = projects.findIndex(p => p.id === editingId);
-      if (idx > -1) projects[idx] = project;
-    } else {
-      projects.unshift(project);
-    }
-
-    saveProjects(projects);
-    closeModal();
-    renderGrid(currentFilter);
-  }
-
-  // ── DELETE ────────────────────────────────────────────
-  function deleteProject(id) {
-    if (!confirm('Supprimer ce projet ?')) return;
-    const projects = loadProjects().filter(p => p.id !== id);
-    saveProjects(projects);
-    renderGrid(currentFilter);
-  }
-
-  // ── CATEGORY ICONS ────────────────────────────────────
+  // mapping catégories
   const catIcons = { java: '☕', javascript: '⚡', web: '⬡', api: '◈', game: '🎮', autre: '◎' };
   const catLabels = { java: 'Java', javascript: 'JavaScript', web: 'Web App', api: 'API / Dashboard', game: 'Jeux', autre: 'Autre' };
   const statusLabels = { wip: 'En cours', live: 'Live', pause: 'En pause' };
 
-  // ── RENDER ────────────────────────────────────────────
-  let currentFilter = 'all';
-
-  function renderGrid(filter) {
-    currentFilter = filter;
-    const projects = loadProjects();
-    const filtered = filter === 'all' ? projects : projects.filter(p => p.category === filter);
+  function renderGrid() {
+    const filteredProjects = currentFilter === 'all' 
+      ? PROJECTS_LIST 
+      : PROJECTS_LIST.filter(p => p.category === currentFilter);
+    
     const grid = document.getElementById('labGrid');
-
-    // Update filters UI
+    
+    // update active class on filters
     document.querySelectorAll('.lab-filter').forEach(btn => {
-      btn.classList.toggle('active', btn.dataset.filter === filter);
+      btn.classList.toggle('active', btn.dataset.filter === currentFilter);
     });
-
-    // Update stats
-    document.getElementById('statTotal').textContent = projects.length;
-    document.getElementById('statLive').textContent = projects.filter(p => p.status === 'live').length;
-    document.getElementById('statWip').textContent = projects.filter(p => p.status === 'wip').length;
-
-    if (filtered.length === 0) {
-      grid.innerHTML = '<div class="lab-empty"><div class="lab-empty-icon">' + (filter === 'all' ? '⬡' : catIcons[filter] || '⬡') + '</div><div class="lab-empty-text">' + (filter === 'all' ? 'Aucun projet — cliquez sur "+ Nouveau projet" pour commencer' : 'Aucun projet dans cette catégorie') + '</div></div>';
+    
+    if (filteredProjects.length === 0) {
+      grid.innerHTML = `<div class="lab-empty">
+        <div class="lab-empty-icon">${catIcons[currentFilter] || '⬡'}</div>
+        <div class="lab-empty-text">Aucun projet dans cette catégorie</div>
+      </div>`;
       return;
     }
-
-    grid.innerHTML = filtered.map(p => {
-      const stackPills = p.stack
-        ? p.stack.split(',').map(s => '<span class="lab-stack-pill">' + escHtml(s.trim()) + '</span>').join('')
+    
+    grid.innerHTML = filteredProjects.map(project => {
+      // gestion image / placeholder
+      let visualHtml = '';
+      if (project.image && project.image.trim() !== '') {
+        visualHtml = `<img src="${escapeHtml(project.image)}" alt="${escapeHtml(project.title)}" onerror="this.style.display='none'">`;
+      } else {
+        const icon = catIcons[project.category] || '🎮';
+        visualHtml = `<div class="lab-card-placeholder">
+          <span class="lab-card-placeholder-icon">${icon}</span>
+          <span class="lab-card-placeholder-label">${project.id === 'rift-game' ? 'Rift Game' : 'Capture à venir'}</span>
+        </div>`;
+      }
+      
+      // stack pills
+      const stackPills = project.stack
+        ? project.stack.split(',').map(s => `<span class="lab-stack-pill">${escapeHtml(s.trim())}</span>`).join('')
         : '';
-      const visual = p.image
-        ? '<img src="' + escHtml(p.image) + '" alt="' + escHtml(p.title) + '" onerror="this.style.display=\'none\'">'
-        : '<div class="lab-card-placeholder"><span class="lab-card-placeholder-icon">' + (catIcons[p.category] || '⬡') + '</span><span class="lab-card-placeholder-label">Capture à venir</span></div>';
-
-      return '<div class="lab-card" data-category="' + p.category + '">' +
-        '<div class="lab-card-visual">' + visual + '<div class="lab-card-overlay"></div>' +
-        '<div class="lab-card-actions">' +
-          '<button class="btn-card-action btn-edit" onclick="openModal(\'' + p.id + '\')">✎ Éditer</button>' +
-          '<button class="btn-card-action btn-delete" onclick="deleteProject(\'' + p.id + '\')">✕</button>' +
-        '</div></div>' +
-        '<div class="lab-card-body">' +
-          '<span class="lab-card-category">' + escHtml(catLabels[p.category] || p.category) + '</span>' +
-          '<h3 class="lab-card-title">' + escHtml(p.title) + '</h3>' +
-          '<p class="lab-card-desc">' + escHtml(p.desc) + '</p>' +
-          '<div class="lab-card-footer">' +
-            '<div class="lab-card-stack">' + stackPills + '</div>' +
-            '<span class="lab-card-status ' + p.status + '"><span class="lab-card-status-dot"></span>' + (statusLabels[p.status] || p.status) + '</span>' +
-          '</div>' +
-        '</div>' +
-      '</div>';
+      
+      // gestion du clic sur la carte (redirection si redirectUrl existe)
+      const clickAttr = project.redirectUrl ? `onclick="window.location.href='${escapeHtml(project.redirectUrl)}'"` : '';
+      
+      return `<div class="lab-card" data-category="${project.category}" ${clickAttr}>
+        <div class="lab-card-visual">
+          ${visualHtml}
+          <div class="lab-card-overlay"></div>
+        </div>
+        <div class="lab-card-body">
+          <span class="lab-card-category">${escapeHtml(catLabels[project.category] || project.category)}</span>
+          <h3 class="lab-card-title">${escapeHtml(project.title)}</h3>
+          <p class="lab-card-desc">${escapeHtml(project.desc)}</p>
+          <div class="lab-card-footer">
+            <div class="lab-card-stack">${stackPills}</div>
+            <span class="lab-card-status ${project.status}">
+              <span class="lab-card-status-dot"></span>${statusLabels[project.status] || project.status}
+            </span>
+          </div>
+        </div>
+      </div>`;
     }).join('');
   }
-
-  function escHtml(str) {
+  
+  function escapeHtml(str) {
     return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
   }
-
-  // ── FILTERS ───────────────────────────────────────────
+  
+  // ---------- Gestion des filtres ----------
   document.querySelectorAll('.lab-filter').forEach(btn => {
-    btn.addEventListener('click', () => renderGrid(btn.dataset.filter));
+    btn.addEventListener('click', (e) => {
+      currentFilter = btn.dataset.filter;
+      renderGrid();
+    });
   });
-
-  // ── INIT ──────────────────────────────────────────────
-  renderGrid('all');
+  
+  // ---------- Widget citations aléatoires ----------
+  const quotes = [
+    { text: "Un jeu vidéo réussi, c’est 10% de code et 90% d’amour.", author: "— Shigeru Miyamoto (inspiré)" },
+    { text: "La meilleure façon de prédire l’avenir est de le créer.", author: "— Alan Kay" },
+    { text: "Le design n’est pas seulement ce à quoi ça ressemble, mais aussi comment ça fonctionne.", author: "— Steve Jobs" },
+    { text: "Faire un jeu, c’est raconter une histoire que le joueur vivra.", author: "— Hideo Kojima" },
+    { text: "Le JavaScript est le vélo du web : il a des défauts mais il vous emmène partout.", author: "— Citation anonyme" },
+    { text: "Un prototype aujourd’hui vaut mieux qu’un produit parfait dans six mois.", author: "— Principe Lean" },
+    { text: "Les bugs ne sont pas des erreurs, ce sont des fonctionnalités non documentées.", author: "— Dev humor" },
+    { text: "Jouer, c’est apprendre. Apprendre, c’est jouer.", author: "— Proverbe du lab" },
+    { text: "Inspirez-vous, expérimentez, cassez tout, recommencez. C’est ça le lab.", author: "— Citation anonyme" },
+    { text: "L’imagination est plus importante que le savoir.", author: "— Albert Einstein" },
+    { text: "C’est en forgeant qu’on devient forgeron.", author: "— Proverbe (attribué à Samuel Smiles)" },
+    { text: "L’erreur est une porte vers la découverte.", author: "— James Joyce" },
+    { text: "Le plus grand danger, c’est de ne pas prendre de risque.", author: "— Friedrich Nietzsche" },
+    { text: "Apprendre sans réfléchir est vain ; réfléchir sans apprendre est dangereux.", author: "— Confucius" },
+    { text: "La perfection est atteinte non quand il n’y a plus rien à ajouter, mais quand il n’y a plus rien à enlever.", author: "— Antoine de Saint-Exupéry" },
+    { text: "Le doute n’est pas une condition agréable, mais la certitude est absurde.", author: "— Voltaire" },
+    { text: "Ce que l’on conçoit bien s’énonce clairement, et les mots pour le dire arrivent aisément.", author: "— Nicolas Boileau" },
+    { text: "Il n’y a qu’une chose au monde pire que de parler de soi : c’est de ne pas le faire.", author: "— Oscar Wilde" },
+    { text: "Fais ce que tu peux, avec ce que tu as, là où tu es.", author: "— Théodore Roosevelt" },
+    { text: "La connaissance de toutes les choses est bonne.", author: "— Aristote" },
+    { text: "La seule véritable sagesse est de savoir que tu ne sais rien.", author: "— Socrate" },
+    { text: "L’obstacle est le chemin.", author: "— Marc Aurèle" },
+    { text: "On ne voit bien qu’avec le cœur. L’essentiel est invisible pour les yeux.", author: "— Antoine de Saint-Exupéry" },
+    { text: "Il ne faut pas craindre la perfection, on ne l’atteindra jamais.", author: "— Salvador Dalí" },
+    { text: "Le secret du changement, c’est de concentrer toute son énergie à construire du nouveau, pas à lutter contre l’ancien.", author: "— Socrate" },
+    { text: "Tout est difficile avant d’être facile.", author: "— Thomas Fuller" },
+    { text: "L’homme n’est qu’un roseau, le plus faible de la nature, mais c’est un roseau pensant.", author: "— Blaise Pascal" },
+    { text: "La simplicité est la sophistication suprême.", author: "— Léonard de Vinci" },
+    { text: "Le génie, c’est l’art de savoir prendre la mesure de ses limites.", author: "— Albert Camus" }
+  ];
+  
+  function setRandomQuote() {
+    const randomIndex = Math.floor(Math.random() * quotes.length);
+    const quote = quotes[randomIndex];
+    document.getElementById('inspireQuote').textContent = `« ${quote.text} »`;
+    document.getElementById('inspireAuthor').textContent = quote.author;
+  }
+  
+  document.getElementById('refreshQuoteBtn').addEventListener('click', setRandomQuote);
+  
+  // ---------- Initialisation ----------
+  updateStats();
+  renderGrid();
+  setRandomQuote(); // première citation aléatoire
 </script>
 </body>
 </html>

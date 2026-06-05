@@ -1,0 +1,868 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta property="og:title" content="RIFT — Don't touch the lines">
+<meta property="og:description" content="Combien de temps peux-tu survivre ?">
+<meta property="og:type" content="website">
+<title>RIFT — Don't touch the lines</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap');
+
+  :root {
+    --bg: #080808;
+    --fg: #f0f0f0;
+    --dim: rgba(240,240,240,0.18);
+    --accent: #ff2b2b;
+    --gold: #f5c842;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+  html, body {
+    width: 100%; height: 100%;
+    background: var(--bg);
+    overflow: hidden;
+    font-family: 'Space Mono', monospace;
+    color: var(--fg);
+  }
+
+  canvas {
+    position: fixed;
+    top: 0; left: 0;
+    display: block;
+  }
+
+  /* ── HUD ── */
+  #hud {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: 22px 28px;
+    pointer-events: none;
+    z-index: 10;
+  }
+  .hud-block { display: flex; flex-direction: column; gap: 2px; }
+  .hud-label { font-size: 9px; letter-spacing: 3px; color: var(--dim); text-transform: uppercase; }
+  .hud-value { font-size: 22px; font-weight: 700; letter-spacing: -1px; color: var(--fg); line-height: 1; }
+  .hud-value.right { text-align: right; }
+  #hud { opacity: 0; transition: opacity 0.4s; }
+  #hud.visible { opacity: 1; }
+
+  /* ── SCREENS ── */
+  .screen {
+    position: fixed;
+    inset: 0;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    z-index: 20;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.35s ease;
+  }
+  .screen.active { opacity: 1; pointer-events: all; }
+
+  /* START */
+  #screen-start { gap: 0; }
+
+  .logo-wrap { position: relative; margin-bottom: 32px; }
+  .logo {
+    font-size: clamp(72px, 18vw, 120px);
+    font-weight: 700;
+    letter-spacing: 28px;
+    color: var(--fg);
+    line-height: 1;
+    text-transform: uppercase;
+    position: relative;
+  }
+  .logo-scan {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, transparent 45%, rgba(255,255,255,0.04) 50%, transparent 55%);
+    animation: scan 3s linear infinite;
+  }
+  @keyframes scan {
+    0% { transform: translateY(-100%); }
+    100% { transform: translateY(100%); }
+  }
+
+  .tagline {
+    font-size: 10px;
+    letter-spacing: 6px;
+    color: var(--dim);
+    text-transform: uppercase;
+    margin-bottom: 48px;
+  }
+
+  .controls-row {
+    display: flex; gap: 24px; margin-bottom: 44px;
+    flex-wrap: wrap; justify-content: center;
+  }
+  .ctrl-item { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+  .ctrl-keys { display: flex; gap: 4px; }
+  .key {
+    width: 24px; height: 24px;
+    border: 1px solid rgba(255,255,255,0.15);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 9px; color: rgba(255,255,255,0.4);
+  }
+  .ctrl-label { font-size: 8px; letter-spacing: 2px; color: var(--dim); text-transform: uppercase; }
+
+  .btn-play {
+    padding: 16px 64px;
+    background: var(--fg);
+    color: var(--bg);
+    border: none;
+    font-family: inherit;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 5px;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: transform 0.15s, opacity 0.15s;
+    margin-bottom: 16px;
+  }
+  .btn-play:hover { opacity: 0.85; transform: translateY(-1px); }
+  .btn-play:active { transform: translateY(1px); }
+
+  .hint-space {
+    font-size: 9px; letter-spacing: 3px; color: var(--dim);
+    text-transform: uppercase;
+  }
+
+  /* LEADERBOARD */
+  #lb-wrap {
+    margin-top: 40px;
+    width: min(320px, 88vw);
+    border-top: 1px solid rgba(255,255,255,0.07);
+    padding-top: 20px;
+  }
+  .lb-title {
+    font-size: 9px; letter-spacing: 4px; color: var(--dim);
+    text-transform: uppercase; margin-bottom: 14px; text-align: center;
+  }
+  #lb-list { list-style: none; display: flex; flex-direction: column; gap: 8px; }
+  .lb-row {
+    display: flex; align-items: baseline; gap: 10px;
+    font-size: 11px;
+  }
+  .lb-rank { width: 18px; color: var(--dim); font-size: 9px; }
+  .lb-score { font-weight: 700; font-size: 15px; margin-right: auto; }
+  .lb-date { font-size: 9px; color: var(--dim); }
+  .lb-row.gold .lb-score { color: var(--gold); }
+  .lb-row.gold .lb-rank { color: var(--gold); }
+
+  /* DEAD */
+  #screen-dead { gap: 0; }
+
+  .dead-label {
+    font-size: 9px; letter-spacing: 5px; color: var(--dim);
+    text-transform: uppercase; margin-bottom: 12px;
+  }
+  .dead-label.record { color: var(--gold); }
+
+  .dead-score {
+    font-size: clamp(64px, 18vw, 108px);
+    font-weight: 700; letter-spacing: -4px; line-height: 1;
+    margin-bottom: 4px;
+  }
+  .dead-unit {
+    font-size: 10px; letter-spacing: 4px; color: var(--dim);
+    text-transform: uppercase; margin-bottom: 36px;
+  }
+
+  .dead-actions {
+    display: flex; flex-direction: column; align-items: center; gap: 14px;
+    width: min(300px, 88vw);
+  }
+
+  .btn-retry {
+    width: 100%;
+    padding: 15px;
+    background: var(--fg);
+    color: var(--bg);
+    border: none;
+    font-family: inherit;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: opacity 0.15s;
+  }
+  .btn-retry:hover { opacity: 0.85; }
+
+  .btn-share {
+    width: 100%;
+    padding: 15px;
+    background: transparent;
+    color: var(--fg);
+    border: 1px solid rgba(255,255,255,0.2);
+    font-family: inherit;
+    font-size: 11px;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: border-color 0.2s, background 0.2s;
+  }
+  .btn-share:hover { border-color: rgba(255,255,255,0.5); background: rgba(255,255,255,0.04); }
+
+  .btn-seed {
+    font-size: 9px; letter-spacing: 2px; color: var(--dim);
+    background: none; border: none; cursor: pointer;
+    text-transform: uppercase; font-family: inherit;
+    text-decoration: underline; text-underline-offset: 3px;
+    transition: color 0.2s;
+  }
+  .btn-seed:hover { color: rgba(255,255,255,0.5); }
+
+  .seed-code {
+    font-size: 10px; letter-spacing: 2px; color: rgba(255,255,255,0.25);
+    margin-top: -4px;
+  }
+
+  /* ── TOAST ── */
+  #toast {
+    position: fixed;
+    bottom: 32px; left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: rgba(255,255,255,0.09);
+    border: 1px solid rgba(255,255,255,0.12);
+    padding: 10px 24px;
+    font-size: 10px; letter-spacing: 3px;
+    text-transform: uppercase; color: var(--fg);
+    opacity: 0;
+    transition: opacity 0.2s, transform 0.2s;
+    pointer-events: none;
+    z-index: 99;
+    white-space: nowrap;
+  }
+  #toast.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+
+  /* ── CHALLENGE BANNER ── */
+  #challenge-banner {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    background: rgba(245,200,66,0.08);
+    border-bottom: 1px solid rgba(245,200,66,0.2);
+    padding: 10px 20px;
+    font-size: 10px; letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--gold);
+    text-align: center;
+    z-index: 30;
+    display: none;
+  }
+</style>
+</head>
+<body>
+
+<canvas id="c"></canvas>
+
+<!-- CHALLENGE BANNER -->
+<div id="challenge-banner"></div>
+
+<!-- HUD -->
+<div id="hud">
+  <div class="hud-block">
+    <div class="hud-label">Temps</div>
+    <div class="hud-value" id="hud-score">0.0</div>
+  </div>
+  <div class="hud-block" style="align-items:flex-end">
+    <div class="hud-label">Record</div>
+    <div class="hud-value right" id="hud-best">0.0</div>
+  </div>
+</div>
+
+<!-- SCREEN START -->
+<div class="screen active" id="screen-start">
+  <div class="logo-wrap">
+    <div class="logo">RIFT</div>
+    <div class="logo-scan"></div>
+  </div>
+  <div class="tagline">Don't touch the lines</div>
+
+  <div class="controls-row">
+    <div class="ctrl-item">
+      <div class="ctrl-keys">
+        <div class="key" style="width:56px">←↑↓→</div>
+      </div>
+      <div class="ctrl-label">flèches</div>
+    </div>
+    <div class="ctrl-item">
+      <div class="ctrl-keys">
+        <div class="key">W</div><div class="key">A</div><div class="key">S</div><div class="key">D</div>
+      </div>
+      <div class="ctrl-label">wasd</div>
+    </div>
+    <div class="ctrl-item">
+      <div class="ctrl-keys">
+        <div class="key" style="width:40px">👆</div>
+      </div>
+      <div class="ctrl-label">touch</div>
+    </div>
+  </div>
+
+  <button class="btn-play" id="btn-start">Jouer</button>
+  <div class="hint-space">ou appuie sur espace</div>
+
+  <div id="lb-wrap">
+    <div class="lb-title">Meilleurs scores</div>
+    <ul id="lb-list"></ul>
+  </div>
+</div>
+
+<!-- SCREEN DEAD -->
+<div class="screen" id="screen-dead">
+  <div class="dead-label" id="dead-label">game over</div>
+  <div class="dead-score" id="dead-score">0.0</div>
+  <div class="dead-unit">secondes</div>
+
+  <div class="dead-actions">
+    <button class="btn-retry" id="btn-retry">Rejouer</button>
+    <button class="btn-share" id="btn-share">Copier le défi</button>
+    <button class="btn-seed" id="btn-seed">rejouer avec ce seed</button>
+    <div class="seed-code" id="seed-display"></div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div id="toast"></div>
+
+<script>
+// ─────────────────────────────────────────────
+//  UTILS
+// ─────────────────────────────────────────────
+function seededRng(seed) {
+  let s = seed;
+  return function() {
+    s = (s * 1664525 + 1013904223) & 0xffffffff;
+    return (s >>> 0) / 0xffffffff;
+  };
+}
+
+function showToast(msg, dur = 2000) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(t._tid);
+  t._tid = setTimeout(() => t.classList.remove('show'), dur);
+}
+
+function dateStr() {
+  const d = new Date();
+  return d.toLocaleDateString('fr-FR', { day:'2-digit', month:'2-digit' });
+}
+
+// ─────────────────────────────────────────────
+//  LEADERBOARD
+// ─────────────────────────────────────────────
+const LB_KEY = 'rift_lb_v1';
+
+function loadLB() {
+  try { return JSON.parse(localStorage.getItem(LB_KEY)) || []; } catch { return []; }
+}
+
+function saveLB(entries) {
+  localStorage.setItem(LB_KEY, JSON.stringify(entries));
+}
+
+function addScore(s, seed) {
+  const lb = loadLB();
+  lb.push({ score: s, seed, date: dateStr() });
+  lb.sort((a, b) => b.score - a.score);
+  const trimmed = lb.slice(0, 10);
+  saveLB(trimmed);
+  return trimmed;
+}
+
+function renderLB() {
+  const lb = loadLB();
+  const list = document.getElementById('lb-list');
+  list.innerHTML = '';
+  if(!lb.length) {
+    list.innerHTML = '<li style="font-size:10px;letter-spacing:2px;color:var(--dim);text-align:center">Aucun score encore</li>';
+    return;
+  }
+  lb.forEach((e, i) => {
+    const li = document.createElement('li');
+    li.className = 'lb-row' + (i === 0 ? ' gold' : '');
+    li.innerHTML = `
+      <span class="lb-rank">${i === 0 ? '★' : (i+1)+'.'}</span>
+      <span class="lb-score">${e.score.toFixed(1)}s</span>
+      <span class="lb-date">${e.date}</span>`;
+    list.appendChild(li);
+  });
+}
+
+// ─────────────────────────────────────────────
+//  CANVAS SETUP
+// ─────────────────────────────────────────────
+const canvas = document.getElementById('c');
+const ctx = canvas.getContext('2d');
+let W, H, dpr;
+
+function resize() {
+  dpr = window.devicePixelRatio || 1;
+  W = window.innerWidth;
+  H = window.innerHeight;
+  canvas.width = W * dpr;
+  canvas.height = H * dpr;
+  canvas.style.width = W + 'px';
+  canvas.style.height = H + 'px';
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+}
+resize();
+window.addEventListener('resize', resize);
+
+// ─────────────────────────────────────────────
+//  GAME STATE
+// ─────────────────────────────────────────────
+let state = 'start'; // start | play | dead
+let score = 0;
+let bestScore = parseFloat(localStorage.getItem('rift_best') || '0');
+let startTime = 0;
+let currentSeed = 0;
+let rng;
+
+let px, py;
+const PR = 6;
+let velX = 0, velY = 0;
+const SPEED = 6;
+const FRICTION = 0.80;
+
+// Input
+const keys = {};
+document.addEventListener('keydown', e => {
+  keys[e.key] = true;
+  if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight',' '].includes(e.key)) e.preventDefault();
+  if((e.key === ' ' || e.key === 'Enter') && (state === 'start' || state === 'dead')) startGame();
+});
+document.addEventListener('keyup', e => { keys[e.key] = false; });
+
+// Touch — direct finger tracking
+let touchActive = false, touchTargetX = null, touchTargetY = null;
+canvas.addEventListener('touchstart', e => {
+  touchActive = true;
+  touchTargetX = e.touches[0].clientX;
+  touchTargetY = e.touches[0].clientY;
+  e.preventDefault();
+}, { passive: false });
+canvas.addEventListener('touchmove', e => {
+  touchTargetX = e.touches[0].clientX;
+  touchTargetY = e.touches[0].clientY;
+  e.preventDefault();
+}, { passive: false });
+canvas.addEventListener('touchend', () => { touchActive = false; });
+canvas.addEventListener('touchcancel', () => { touchActive = false; });
+
+// ─────────────────────────────────────────────
+//  WALLS
+// ─────────────────────────────────────────────
+let walls = [];
+
+class Wall {
+  constructor(rngFn) {
+    this.thickness = 7 + rngFn() * 5;
+    this.alpha = 0;
+    this.born = Date.now();
+    this.gap = 75 + rngFn() * 55;
+
+    if(rngFn() < 0.5) {
+      // horizontal
+      this.type = 'h';
+      const fromTop = rngFn() < 0.5;
+      this.y = fromTop ? -this.thickness - 2 : H + this.thickness + 2;
+      this.dir = fromTop ? 1 : -1;
+      this.gapX = rngFn() * (W - this.gap);
+      this.baseSpeed = 1.4 + rngFn() * 0.8;
+    } else {
+      // vertical
+      this.type = 'v';
+      const fromLeft = rngFn() < 0.5;
+      this.x = fromLeft ? -this.thickness - 2 : W + this.thickness + 2;
+      this.dir = fromLeft ? 1 : -1;
+      this.gapY = rngFn() * (H - this.gap);
+      this.baseSpeed = 1.4 + rngFn() * 0.8;
+    }
+  }
+
+  update(dt, mult) {
+    const age = (Date.now() - this.born) / 1000;
+    this.alpha = Math.min(1, age * 5);
+    const sp = this.baseSpeed * mult * dt * 60;
+    if(this.type === 'h') this.y += this.dir * sp;
+    else this.x += this.dir * sp;
+  }
+
+  offScreen() {
+    if(this.type === 'h') return this.dir > 0 ? this.y > H + 60 : this.y < -60;
+    return this.dir > 0 ? this.x > W + 60 : this.x < -60;
+  }
+
+  collides(x, y, r) {
+    if(this.type === 'h') {
+      if(!(y + r > this.y && y - r < this.y + this.thickness)) return false;
+      const inGap = x + r > this.gapX && x - r < this.gapX + this.gap;
+      return !inGap;
+    } else {
+      if(!(x + r > this.x && x - r < this.x + this.thickness)) return false;
+      const inGap = y + r > this.gapY && y - r < this.gapY + this.gap;
+      return !inGap;
+    }
+  }
+
+  draw() {
+    ctx.save();
+    ctx.globalAlpha = this.alpha;
+
+    // glow behind wall
+    if(this.type === 'h') {
+      ctx.shadowColor = 'rgba(255,255,255,0.5)';
+      ctx.shadowBlur = 12;
+      ctx.fillStyle = '#ffffff';
+      if(this.gapX > 1) ctx.fillRect(0, this.y, this.gapX, this.thickness);
+      const afterX = this.gapX + this.gap;
+      if(afterX < W) ctx.fillRect(afterX, this.y, W - afterX, this.thickness);
+      // gap ghost
+      ctx.shadowBlur = 0;
+      ctx.globalAlpha = this.alpha * 0.06;
+      ctx.fillRect(this.gapX, this.y, this.gap, this.thickness);
+    } else {
+      ctx.shadowColor = 'rgba(255,255,255,0.5)';
+      ctx.shadowBlur = 12;
+      ctx.fillStyle = '#ffffff';
+      if(this.gapY > 1) ctx.fillRect(this.x, 0, this.thickness, this.gapY);
+      const afterY = this.gapY + this.gap;
+      if(afterY < H) ctx.fillRect(this.x, afterY, this.thickness, H - afterY);
+      ctx.shadowBlur = 0;
+      ctx.globalAlpha = this.alpha * 0.06;
+      ctx.fillRect(this.x, this.gapY, this.thickness, this.gap);
+    }
+
+    ctx.restore();
+  }
+}
+
+// ─────────────────────────────────────────────
+//  PARTICLES
+// ─────────────────────────────────────────────
+let particles = [];
+
+function spawnParticles(x, y, count = 22) {
+  for(let i = 0; i < count; i++) {
+    const a = Math.random() * Math.PI * 2;
+    const sp = 0.8 + Math.random() * 4.5;
+    particles.push({
+      x, y,
+      vx: Math.cos(a) * sp,
+      vy: Math.sin(a) * sp,
+      life: 1,
+      decay: 0.02 + Math.random() * 0.025,
+      size: 1.5 + Math.random() * 2.5
+    });
+  }
+}
+
+// ─────────────────────────────────────────────
+//  GRID LINES (bg ambiance)
+// ─────────────────────────────────────────────
+let bgGrid = [];
+function buildGrid() {
+  bgGrid = [];
+  const cols = 14, rows = 20;
+  for(let i = 1; i < cols; i++) bgGrid.push({ x: (i/cols)*W, y: 0, w: 0.4, h: H, a: 0.03 + Math.random()*0.025 });
+  for(let i = 1; i < rows; i++) bgGrid.push({ x: 0, y: (i/rows)*H, w: W, h: 0.4, a: 0.03 + Math.random()*0.025 });
+}
+
+// ─────────────────────────────────────────────
+//  FLASH / VIGNETTE
+// ─────────────────────────────────────────────
+let flashAlpha = 0;
+let vignetteAmt = 0; // 0..1 increases with score
+
+// ─────────────────────────────────────────────
+//  WALL SPAWNER
+// ─────────────────────────────────────────────
+let lastSpawn = 0;
+let spawnInterval = 2200;
+
+// ─────────────────────────────────────────────
+//  GAME LOGIC
+// ─────────────────────────────────────────────
+function startGame(forceSeed) {
+  currentSeed = forceSeed || Math.floor(Math.random() * 0xffffff);
+  rng = seededRng(currentSeed);
+
+  px = W / 2; py = H / 2;
+  velX = 0; velY = 0;
+  walls = []; particles = [];
+  score = 0; flashAlpha = 0; vignetteAmt = 0;
+  startTime = Date.now();
+  lastSpawn = Date.now();
+  spawnInterval = 2200;
+
+  buildGrid();
+  updateBest();
+
+  // screens
+  document.getElementById('screen-start').classList.remove('active');
+  document.getElementById('screen-dead').classList.remove('active');
+  document.getElementById('hud').classList.add('visible');
+
+  state = 'play';
+}
+
+function die() {
+  state = 'dead';
+  spawnParticles(px, py);
+  flashAlpha = 1;
+  document.getElementById('hud').classList.remove('visible');
+
+  const s = Math.round(score * 10) / 10;
+  const isRecord = s > bestScore;
+  if(isRecord) {
+    bestScore = s;
+    localStorage.setItem('rift_best', s.toFixed(1));
+  }
+
+  addScore(s, currentSeed);
+  renderLB();
+  updateBest();
+
+  document.getElementById('dead-score').textContent = s.toFixed(1);
+  document.getElementById('seed-display').textContent = 'seed #' + currentSeed.toString(16).toUpperCase();
+
+  const deadLabel = document.getElementById('dead-label');
+  if(isRecord) {
+    deadLabel.textContent = '★ nouveau record';
+    deadLabel.className = 'dead-label record';
+  } else {
+    deadLabel.textContent = 'game over · record ' + bestScore.toFixed(1) + 's';
+    deadLabel.className = 'dead-label';
+  }
+
+  setTimeout(() => {
+    document.getElementById('screen-dead').classList.add('active');
+  }, 420);
+}
+
+function updateBest() {
+  document.getElementById('hud-best').textContent = bestScore.toFixed(1);
+}
+
+// ─────────────────────────────────────────────
+//  CHALLENGE SEED FROM URL
+// ─────────────────────────────────────────────
+(function checkChallenge() {
+  const params = new URLSearchParams(location.search);
+  const s = params.get('seed');
+  const challenger = params.get('from');
+  if(s) {
+    const banner = document.getElementById('challenge-banner');
+    const name = challenger ? challenger : 'quelqu\'un';
+    banner.textContent = `⚡ ${name} te défie — même seed, bats son score`;
+    banner.style.display = 'block';
+    // store for use on play
+    window._challengeSeed = parseInt(s, 16);
+    // update play button
+    setTimeout(() => {
+      document.getElementById('btn-start').textContent = 'Relever le défi';
+    }, 50);
+    document.getElementById('btn-start').addEventListener('click', () => {
+      startGame(window._challengeSeed);
+    }, { once: true });
+  }
+})();
+
+// ─────────────────────────────────────────────
+//  RENDER LOOP
+// ─────────────────────────────────────────────
+let lastTS = null;
+let diffMult = 1;
+
+function loop(ts) {
+  requestAnimationFrame(loop);
+  const dt = lastTS ? Math.min((ts - lastTS) / 1000, 0.05) : 0.016;
+  lastTS = ts;
+
+  // ── CLEAR ──
+  ctx.fillStyle = '#080808';
+  ctx.fillRect(0, 0, W, H);
+
+  // ── GRID ──
+  bgGrid.forEach(l => {
+    ctx.save();
+    ctx.globalAlpha = l.a;
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(l.x, l.y, l.w, l.h);
+    ctx.restore();
+  });
+
+  // ── PLAY LOGIC ──
+  if(state === 'play') {
+    score = (Date.now() - startTime) / 1000;
+    document.getElementById('hud-score').textContent = score.toFixed(1);
+
+    diffMult = 1 + score * 0.032;
+    spawnInterval = Math.max(700, 2200 - score * 20);
+    vignetteAmt = Math.min(0.7, score * 0.012);
+
+    // Spawn
+    if(Date.now() - lastSpawn > spawnInterval) {
+      lastSpawn = Date.now();
+      walls.push(new Wall(rng));
+      if(score > 12 && rng() < 0.35) {
+        const delay = 250 + rng() * 250;
+        setTimeout(() => { if(state === 'play') walls.push(new Wall(rng)); }, delay);
+      }
+    }
+
+    // Input
+    let ax = 0, ay = 0;
+    if(keys['ArrowLeft']  || keys['a'] || keys['A']) ax -= 1;
+    if(keys['ArrowRight'] || keys['d'] || keys['D']) ax += 1;
+    if(keys['ArrowUp']    || keys['w'] || keys['W']) ay -= 1;
+    if(keys['ArrowDown']  || keys['s'] || keys['S']) ay += 1;
+
+    if(touchActive && touchTargetX !== null) {
+      const dx = touchTargetX - px;
+      const dy = touchTargetY - py;
+      const d = Math.sqrt(dx*dx + dy*dy);
+      if(d > 4) {
+        const strength = Math.min(1, d / 40);
+        ax = (dx / d) * strength;
+        ay = (dy / d) * strength;
+      }
+    }
+
+    velX = velX * FRICTION + ax * SPEED * (1 - FRICTION);
+    velY = velY * FRICTION + ay * SPEED * (1 - FRICTION);
+    px = Math.max(PR, Math.min(W - PR, px + velX));
+    py = Math.max(PR, Math.min(H - PR, py + velY));
+
+    // Update walls
+    walls = walls.filter(w => !w.offScreen());
+    for(const w of walls) {
+      w.update(dt, diffMult);
+      w.draw();
+      if(w.collides(px, py, PR)) { die(); break; }
+    }
+
+    // Player
+    if(state === 'play') {
+      // trails
+      ctx.save();
+      ctx.globalAlpha = 0.12;
+      ctx.fillStyle = '#ffffff';
+      ctx.beginPath();
+      ctx.arc(px - velX * 3, py - velY * 3, PR * 0.7, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.globalAlpha = 0.06;
+      ctx.beginPath();
+      ctx.arc(px - velX * 6, py - velY * 6, PR * 0.4, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+
+      // outer ring pulse
+      const pulse = 0.5 + 0.5 * Math.sin(ts * 0.004);
+      ctx.save();
+      ctx.globalAlpha = 0.05 + pulse * 0.06;
+      ctx.fillStyle = '#ffffff';
+      ctx.beginPath();
+      ctx.arc(px, py, PR + 7, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+
+      // main dot
+      ctx.save();
+      ctx.shadowColor = 'rgba(255,255,255,0.8)';
+      ctx.shadowBlur = 14;
+      ctx.fillStyle = '#ffffff';
+      ctx.beginPath();
+      ctx.arc(px, py, PR, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+    }
+
+  } else if(state === 'dead') {
+    // Draw frozen walls
+    walls.forEach(w => w.draw());
+  }
+
+  // ── PARTICLES ──
+  for(let i = particles.length - 1; i >= 0; i--) {
+    const p = particles[i];
+    p.x += p.vx; p.y += p.vy;
+    p.vx *= 0.94; p.vy *= 0.94;
+    p.life -= p.decay;
+    if(p.life <= 0) { particles.splice(i, 1); continue; }
+    ctx.save();
+    ctx.globalAlpha = p.life * 0.85;
+    ctx.shadowColor = '#ffffff';
+    ctx.shadowBlur = 6;
+    ctx.fillStyle = '#ffffff';
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, p.size * p.life, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+  }
+
+  // ── FLASH ──
+  if(flashAlpha > 0) {
+    ctx.save();
+    ctx.globalAlpha = flashAlpha * 0.5;
+    ctx.fillStyle = '#ff1a1a';
+    ctx.fillRect(0, 0, W, H);
+    ctx.restore();
+    flashAlpha -= dt * 3.5;
+  }
+
+  // ── VIGNETTE ──
+  if(vignetteAmt > 0.05) {
+    const grad = ctx.createRadialGradient(W/2, H/2, Math.min(W,H)*0.3, W/2, H/2, Math.max(W,H)*0.8);
+    grad.addColorStop(0, 'transparent');
+    grad.addColorStop(1, `rgba(255,30,30,${vignetteAmt * 0.22})`);
+    ctx.save();
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, W, H);
+    ctx.restore();
+  }
+}
+
+requestAnimationFrame(loop);
+
+// ─────────────────────────────────────────────
+//  UI EVENTS
+// ─────────────────────────────────────────────
+document.getElementById('btn-start').addEventListener('click', () => { startGame(window._challengeSeed); });
+document.getElementById('btn-retry').addEventListener('click', () => startGame());
+document.getElementById('btn-seed').addEventListener('click', () => {
+  startGame(window._lastDeadSeed || currentSeed);
+});
+
+document.getElementById('btn-share').addEventListener('click', () => {
+  const s = parseFloat(document.getElementById('dead-score').textContent);
+  const seed = currentSeed.toString(16).toUpperCase();
+  const url = location.origin + location.pathname + '?seed=' + seed;
+  const text = `🔲 RIFT — j'ai survécu ${s.toFixed(1)}s sans toucher les lignes.\nTu peux faire mieux ?\n→ ${url}`;
+  navigator.clipboard?.writeText(text).then(() => {
+    showToast('Défi copié ✓');
+  }).catch(() => {
+    prompt('Copie ce lien :', text);
+  });
+  window._lastDeadSeed = currentSeed;
+});
+
+// Init LB on start screen
+renderLB();
+updateBest();
+</script>
+</body>
+</html>
