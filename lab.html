@@ -181,7 +181,7 @@
 
 <script>
   // --------------------------------------------------------------
-  // LISTE STATIQUE DE PROJETS (AJOUTEZ, MODIFIEZ LIBREMENT)
+  // LISTE STATIQUE DE PROJETS (AJOUTER, MODIFIER LIBREMENT)
   // --------------------------------------------------------------
   const PROJECTS_LIST = [
     {
@@ -191,10 +191,10 @@
       category: 'game',
       status: 'live',   // 'live', 'wip' ou 'pause'
       stack: 'HTML5, CSS3, JavaScript, Canvas API',
-      image: '',        // Laissez vide pour l'icône par défaut, ou mettez une URL
+      image: 'images/rift-logo.png',        // Laisser vide pour l'icône par défaut, ou mettre une URL
       redirectUrl: 'rift-game.html'
     },
-    // Vous pouvez ajouter d'autres projets ici, par exemple :
+    // On peut ajouter d'autres projets ici, par exemple :
     // {
     //   id: 'dashboard-twitter',
     //   title: 'Social Pulse',
@@ -310,7 +310,6 @@
   
   // ---------- Widget citations aléatoires ----------
   const quotes = [
-    { text: "Le code est comme la poésie, il doit être à la fois élégant et fonctionnel.", author: "— ALP & TEK Lab" },
     { text: "Un jeu vidéo réussi, c’est 10% de code et 90% d’amour.", author: "— Shigeru Miyamoto (inspiré)" },
     { text: "La meilleure façon de prédire l’avenir est de le créer.", author: "— Alan Kay" },
     { text: "Le design n’est pas seulement ce à quoi ça ressemble, mais aussi comment ça fonctionne.", author: "— Steve Jobs" },
@@ -319,7 +318,27 @@
     { text: "Un prototype aujourd’hui vaut mieux qu’un produit parfait dans six mois.", author: "— Principe Lean" },
     { text: "Les bugs ne sont pas des erreurs, ce sont des fonctionnalités non documentées.", author: "— Dev humor" },
     { text: "Jouer, c’est apprendre. Apprendre, c’est jouer.", author: "— Proverbe du lab" },
-    { text: "Inspirez-vous, expérimentez, cassez tout, recommencez. C’est ça le lab.", author: "— ALP & TEK" }
+    { text: "Inspirez-vous, expérimentez, cassez tout, recommencez. C’est ça le lab.", author: "— Citation anonyme" },
+    { text: "L’imagination est plus importante que le savoir.", author: "— Albert Einstein" },
+    { text: "C’est en forgeant qu’on devient forgeron.", author: "— Proverbe (attribué à Samuel Smiles)" },
+    { text: "L’erreur est une porte vers la découverte.", author: "— James Joyce" },
+    { text: "Le plus grand danger, c’est de ne pas prendre de risque.", author: "— Friedrich Nietzsche" },
+    { text: "Apprendre sans réfléchir est vain ; réfléchir sans apprendre est dangereux.", author: "— Confucius" },
+    { text: "La perfection est atteinte non quand il n’y a plus rien à ajouter, mais quand il n’y a plus rien à enlever.", author: "— Antoine de Saint-Exupéry" },
+    { text: "Le doute n’est pas une condition agréable, mais la certitude est absurde.", author: "— Voltaire" },
+    { text: "Ce que l’on conçoit bien s’énonce clairement, et les mots pour le dire arrivent aisément.", author: "— Nicolas Boileau" },
+    { text: "Il n’y a qu’une chose au monde pire que de parler de soi : c’est de ne pas le faire.", author: "— Oscar Wilde" },
+    { text: "Fais ce que tu peux, avec ce que tu as, là où tu es.", author: "— Théodore Roosevelt" },
+    { text: "La connaissance de toutes les choses est bonne.", author: "— Aristote" },
+    { text: "La seule véritable sagesse est de savoir que tu ne sais rien.", author: "— Socrate" },
+    { text: "L’obstacle est le chemin.", author: "— Marc Aurèle" },
+    { text: "On ne voit bien qu’avec le cœur. L’essentiel est invisible pour les yeux.", author: "— Antoine de Saint-Exupéry" },
+    { text: "Il ne faut pas craindre la perfection, on ne l’atteindra jamais.", author: "— Salvador Dalí" },
+    { text: "Le secret du changement, c’est de concentrer toute son énergie à construire du nouveau, pas à lutter contre l’ancien.", author: "— Socrate" },
+    { text: "Tout est difficile avant d’être facile.", author: "— Thomas Fuller" },
+    { text: "L’homme n’est qu’un roseau, le plus faible de la nature, mais c’est un roseau pensant.", author: "— Blaise Pascal" },
+    { text: "La simplicité est la sophistication suprême.", author: "— Léonard de Vinci" },
+    { text: "Le génie, c’est l’art de savoir prendre la mesure de ses limites.", author: "— Albert Camus" }
   ];
   
   function setRandomQuote() {
