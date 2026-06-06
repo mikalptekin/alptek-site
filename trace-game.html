@@ -1,0 +1,1084 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta property="og:title" content="TRACE — Le puzzle du jour">
+<meta property="og:description" content="Relie les chiffres dans l'ordre. Une seule chance par jour.">
+<title>TRACE</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Syne+Mono&display=swap');
+
+:root {
+  --bg: #f5f0e8;
+  --bg2: #ede8df;
+  --ink: #1a1714;
+  --ink2: #6b6560;
+  --ink3: #b5b0aa;
+  --accent: #2d4a2d;
+  --accent2: #4a7c4a;
+  --path: #2d4a2d;
+  --path-light: rgba(45,74,45,0.15);
+  --anchor-bg: #1a1714;
+  --anchor-fg: #f5f0e8;
+  --cell-border: rgba(26,23,20,0.1);
+  --success: #2d4a2d;
+  --error: #8b2020;
+  --cell-size: min(52px, calc((100vw - 64px) / 6));
+}
+
+* { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; user-select:none; }
+
+html, body {
+  width:100%; min-height:100%;
+  background: var(--bg);
+  font-family: 'Syne', sans-serif;
+  color: var(--ink);
+  overflow-x: hidden;
+}
+
+/* ── LAYOUT ── */
+#app {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0 20px 40px;
+  max-width: 480px;
+  margin: 0 auto;
+}
+
+/* ── HEADER ── */
+header {
+  width: 100%;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  padding: 28px 0 6px;
+  border-bottom: 1.5px solid var(--ink);
+  margin-bottom: 20px;
+}
+.logo-main {
+  font-size: 32px;
+  font-weight: 800;
+  letter-spacing: 6px;
+  text-transform: uppercase;
+  line-height: 1;
+}
+.logo-day {
+  font-family: 'Syne Mono', monospace;
+  font-size: 11px;
+  color: var(--ink2);
+  letter-spacing: 2px;
+}
+
+/* ── INSTRUCTIONS ── */
+#instructions {
+  width: 100%;
+  margin-bottom: 24px;
+  font-size: 12px;
+  color: var(--ink2);
+  letter-spacing: 0.5px;
+  line-height: 1.6;
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.instr-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.instr-dot {
+  width: 8px; height: 8px;
+  background: var(--ink);
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+/* ── GRID WRAPPER ── */
+#grid-wrap {
+  position: relative;
+  touch-action: none;
+  margin-bottom: 24px;
+}
+
+#grid-svg {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 2;
+  overflow: visible;
+}
+
+#grid {
+  display: grid;
+  grid-template-columns: repeat(6, var(--cell-size));
+  grid-template-rows: repeat(6, var(--cell-size));
+  gap: 4px;
+  position: relative;
+  z-index: 3;
+}
+
+.cell {
+  width: var(--cell-size);
+  height: var(--cell-size);
+  border: 1.5px solid var(--cell-border);
+  background: var(--bg2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  transition: background 0.12s;
+  border-radius: 4px;
+  cursor: crosshair;
+}
+
+.cell.filled {
+  background: var(--path-light);
+}
+
+.cell.anchor {
+  background: var(--anchor-bg);
+  border-color: var(--anchor-bg);
+}
+
+.cell.anchor .cell-num {
+  color: var(--anchor-fg);
+  font-weight: 800;
+  font-size: calc(var(--cell-size) * 0.38);
+}
+
+.cell.filled.anchor {
+  background: var(--anchor-bg);
+}
+
+.cell-num {
+  font-family: 'Syne Mono', monospace;
+  font-size: calc(var(--cell-size) * 0.36);
+  font-weight: 700;
+  color: var(--ink);
+  line-height: 1;
+  pointer-events: none;
+  position: relative;
+  z-index: 1;
+}
+
+/* path dot in filled cells */
+.cell.filled:not(.anchor)::after {
+  content: '';
+  position: absolute;
+  width: 30%;
+  height: 30%;
+  border-radius: 50%;
+  background: var(--path);
+  opacity: 0.6;
+}
+
+/* error flash */
+.cell.error-flash {
+  animation: errflash 0.4s ease;
+}
+@keyframes errflash {
+  0%,100% { background: var(--bg2); }
+  50% { background: rgba(139,32,32,0.18); }
+}
+
+/* ── PROGRESS BAR ── */
+#progress-wrap {
+  width: 100%;
+  margin-bottom: 20px;
+}
+.progress-label {
+  display: flex;
+  justify-content: space-between;
+  font-size: 10px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--ink2);
+  margin-bottom: 8px;
+  font-family: 'Syne Mono', monospace;
+}
+#progress-bar-bg {
+  width: 100%;
+  height: 3px;
+  background: var(--cell-border);
+  border-radius: 2px;
+}
+#progress-bar {
+  height: 3px;
+  background: var(--accent);
+  border-radius: 2px;
+  width: 0%;
+  transition: width 0.3s ease;
+}
+
+/* ── ACTIONS ── */
+#actions {
+  width: 100%;
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+.btn-action {
+  flex: 1;
+  padding: 14px;
+  border: 1.5px solid var(--ink);
+  background: transparent;
+  color: var(--ink);
+  font-family: 'Syne', sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  cursor: pointer;
+  border-radius: 3px;
+  transition: background 0.15s, color 0.15s;
+}
+.btn-action:hover { background: var(--ink); color: var(--bg); }
+.btn-action.primary {
+  background: var(--ink);
+  color: var(--bg);
+}
+.btn-action.primary:hover { opacity: 0.82; }
+.btn-action:disabled { opacity: 0.3; cursor: not-allowed; }
+
+/* ── RESULT PANEL ── */
+#result-panel {
+  width: 100%;
+  display: none;
+  flex-direction: column;
+  gap: 0;
+  border: 1.5px solid var(--ink);
+  border-radius: 4px;
+  overflow: hidden;
+}
+#result-panel.visible { display: flex; }
+
+.result-header {
+  background: var(--ink);
+  color: var(--bg);
+  padding: 18px 20px 14px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+.result-title {
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  line-height: 1;
+}
+.result-subtitle {
+  font-family: 'Syne Mono', monospace;
+  font-size: 10px;
+  color: rgba(245,240,232,0.5);
+  letter-spacing: 2px;
+  margin-top: 4px;
+}
+.result-emoji-grid {
+  font-size: 14px;
+  line-height: 1.3;
+  text-align: right;
+}
+
+.result-body {
+  padding: 18px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.result-stat {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  border-bottom: 1px solid var(--cell-border);
+  padding-bottom: 10px;
+}
+.result-stat:last-child { border-bottom: none; padding-bottom: 0; }
+.stat-label {
+  font-size: 10px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--ink2);
+}
+.stat-value {
+  font-family: 'Syne Mono', monospace;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.result-footer {
+  padding: 0 20px 18px;
+  display: flex;
+  gap: 10px;
+}
+
+/* ── COUNTDOWN ── */
+#countdown-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: 'Syne Mono', monospace;
+  font-size: 11px;
+  color: var(--ink2);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+#countdown-val { color: var(--ink); font-size: 15px; font-weight: 700; }
+
+/* ── ALREADY PLAYED SCREEN ── */
+#already-screen {
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 32px 0;
+  gap: 16px;
+}
+#already-screen.visible { display: flex; }
+
+.already-title {
+  font-size: 18px; font-weight: 800; letter-spacing: 3px;
+  text-transform: uppercase; color: var(--ink);
+}
+.already-sub {
+  font-size: 11px; letter-spacing: 2px; color: var(--ink2);
+  text-transform: uppercase; font-family: 'Syne Mono', monospace;
+}
+.already-emoji { font-size: 48px; line-height: 1; }
+
+/* ── TOAST ── */
+#toast {
+  position: fixed;
+  bottom: 24px; left: 50%;
+  transform: translateX(-50%) translateY(14px);
+  background: var(--ink);
+  color: var(--bg);
+  padding: 10px 22px;
+  font-size: 10px; letter-spacing: 3px;
+  text-transform: uppercase;
+  opacity: 0; pointer-events: none;
+  transition: opacity 0.2s, transform 0.2s;
+  z-index: 99;
+  white-space: nowrap;
+  border-radius: 3px;
+  font-family: 'Syne Mono', monospace;
+}
+#toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+/* ── PATH SVG ── */
+.path-line {
+  fill: none;
+  stroke: var(--path);
+  stroke-width: 3;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  opacity: 0.55;
+}
+</style>
+</head>
+<body>
+<div id="app">
+
+  <header>
+    <div class="logo-main">TRACE</div>
+    <div class="logo-day" id="day-label">Chargement…</div>
+  </header>
+
+  <div id="instructions">
+    <div class="instr-item"><div class="instr-dot"></div>Relie les chiffres dans l'ordre</div>
+    <div class="instr-item"><div class="instr-dot"></div>Remplis toutes les cases</div>
+    <div class="instr-item"><div class="instr-dot"></div>Glisse le doigt sans lever</div>
+  </div>
+
+  <div id="progress-wrap">
+    <div class="progress-label">
+      <span>Progression</span>
+      <span id="progress-txt">0 / 36</span>
+    </div>
+    <div id="progress-bar-bg"><div id="progress-bar"></div></div>
+  </div>
+
+  <div id="grid-wrap">
+    <svg id="grid-svg"></svg>
+    <div id="grid"></div>
+  </div>
+
+  <div id="actions">
+    <button class="btn-action" id="btn-undo">↩ Annuler</button>
+    <button class="btn-action" id="btn-reset">Réinitialiser</button>
+    <button class="btn-action primary" id="btn-validate" disabled>Valider</button>
+  </div>
+
+  <div id="result-panel">
+    <div class="result-header">
+      <div>
+        <div class="result-title" id="result-title">—</div>
+        <div class="result-subtitle" id="result-subtitle">—</div>
+      </div>
+      <div class="result-emoji-grid" id="result-emoji"></div>
+    </div>
+    <div class="result-body">
+      <div class="result-stat">
+        <span class="stat-label">Cases remplies</span>
+        <span class="stat-value" id="stat-cells">—</span>
+      </div>
+      <div class="result-stat">
+        <span class="stat-label">Temps</span>
+        <span class="stat-value" id="stat-time">—</span>
+      </div>
+      <div class="result-stat">
+        <span class="stat-label">Prochain puzzle</span>
+        <span class="stat-value"><span id="countdown-val">—</span></span>
+      </div>
+    </div>
+    <div class="result-footer">
+      <button class="btn-action primary" id="btn-share-result" style="flex:2">Partager</button>
+      <button class="btn-action" id="btn-show-solution" style="flex:1">Voir</button>
+    </div>
+  </div>
+
+  <div id="already-screen">
+    <div class="already-emoji" id="already-emoji">✓</div>
+    <div class="already-title" id="already-title">Déjà joué</div>
+    <div class="already-sub" id="already-sub">Reviens demain</div>
+    <div id="already-result"></div>
+    <button class="btn-action" id="btn-share-already" style="margin-top:8px;width:100%">Partager mon résultat</button>
+    <div id="countdown-wrap" style="margin-top:8px">
+      Prochain puzzle dans <span id="countdown-val2">—</span>
+    </div>
+  </div>
+
+</div>
+
+<div id="toast"></div>
+
+<script>
+// ═══════════════════════════════════════════════
+// SEEDED RNG (Mulberry32)
+// ═══════════════════════════════════════════════
+function mulberry32(seed) {
+  return function() {
+    seed |= 0; seed = seed + 0x6D2B79F5 | 0;
+    let t = Math.imul(seed ^ seed >>> 15, 1 | seed);
+    t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+    return ((t ^ t >>> 14) >>> 0) / 4294967296;
+  };
+}
+
+// ═══════════════════════════════════════════════
+// DATE UTILITIES
+// ═══════════════════════════════════════════════
+function todayStr() {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+
+function dateSeed(str) {
+  // Simple hash of date string → int
+  let h = 0;
+  for(let i = 0; i < str.length; i++) h = Math.imul(31, h) + str.charCodeAt(i) | 0;
+  return Math.abs(h);
+}
+
+function dayNumber() {
+  const epoch = new Date('2024-01-01').getTime();
+  const now = new Date(); now.setHours(0,0,0,0);
+  return Math.floor((now.getTime() - epoch) / 86400000) + 1;
+}
+
+function msUntilMidnight() {
+  const now = new Date();
+  const midnight = new Date(now); midnight.setHours(24,0,0,0);
+  return midnight - now;
+}
+
+function formatCountdown(ms) {
+  const s = Math.floor(ms / 1000);
+  const h = Math.floor(s / 3600);
+  const m = Math.floor((s % 3600) / 60);
+  const sc = s % 60;
+  return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(sc).padStart(2,'0')}`;
+}
+
+// ═══════════════════════════════════════════════
+// PUZZLE GENERATION
+// ═══════════════════════════════════════════════
+const GRID_SIZE = 6;
+const TOTAL = GRID_SIZE * GRID_SIZE; // 36
+
+function idx(r, c) { return r * GRID_SIZE + c; }
+function pos(i) { return { r: Math.floor(i / GRID_SIZE), c: i % GRID_SIZE }; }
+
+function neighbors(i) {
+  const { r, c } = pos(i);
+  const nb = [];
+  if(r > 0) nb.push(idx(r-1, c));
+  if(r < GRID_SIZE-1) nb.push(idx(r+1, c));
+  if(c > 0) nb.push(idx(r, c-1));
+  if(c < GRID_SIZE-1) nb.push(idx(r, c+1));
+  return nb;
+}
+
+// Generate a complete Hamiltonian path on 6×6 using constrained random walk
+function generateHamiltonianPath(rng) {
+  for(let attempt = 0; attempt < 200; attempt++) {
+    const visited = new Array(TOTAL).fill(false);
+    const path = [];
+    // Random start cell
+    let cur = Math.floor(rng() * TOTAL);
+    visited[cur] = true;
+    path.push(cur);
+
+    while(path.length < TOTAL) {
+      const nb = neighbors(cur).filter(n => !visited[n]);
+      if(nb.length === 0) break;
+      // Warnsdorff heuristic: pick neighbor with fewest onward moves
+      nb.sort((a, b) => {
+        const fa = neighbors(a).filter(n => !visited[n]).length;
+        const fb = neighbors(b).filter(n => !visited[n]).length;
+        if(fa !== fb) return fa - fb;
+        return rng() - 0.5; // tie-break random
+      });
+      cur = nb[0];
+      visited[cur] = true;
+      path.push(cur);
+    }
+
+    if(path.length === TOTAL) return path;
+  }
+  // Fallback: snake path
+  const path = [];
+  for(let r = 0; r < GRID_SIZE; r++) {
+    if(r % 2 === 0) for(let c = 0; c < GRID_SIZE; c++) path.push(idx(r,c));
+    else for(let c = GRID_SIZE-1; c >= 0; c--) path.push(idx(r,c));
+  }
+  return path;
+}
+
+// Place anchor numbers along the path
+// Returns array of {cellIndex, number} — anchors are waypoints the player must hit in order
+function placeAnchors(path, rng) {
+  // We want ~7-9 anchors spread across the 36-step path
+  const count = 7 + Math.floor(rng() * 3); // 7-9
+  const anchors = [];
+
+  // Always include start (1) and end (count)
+  anchors.push({ cellIndex: path[0], number: 1, pathPos: 0 });
+
+  // Pick intermediate positions ensuring min spacing
+  const minSpacing = Math.floor(TOTAL / (count + 1));
+  const candidates = [];
+  for(let i = minSpacing; i < TOTAL - minSpacing; i += minSpacing) {
+    const jitter = Math.floor((rng() - 0.5) * minSpacing * 0.6);
+    const p = Math.max(1, Math.min(TOTAL-2, i + jitter));
+    candidates.push(p);
+  }
+
+  // Deduplicate & sort
+  const uniq = [...new Set(candidates)].sort((a,b)=>a-b);
+
+  // Pick count-2 intermediates
+  const pick = [];
+  while(pick.length < count - 2 && uniq.length > 0) {
+    const ii = Math.floor(rng() * uniq.length);
+    pick.push(uniq.splice(ii,1)[0]);
+  }
+  pick.sort((a,b)=>a-b);
+
+  pick.forEach((p, i) => {
+    anchors.push({ cellIndex: path[p], number: i+2, pathPos: p });
+  });
+  anchors.push({ cellIndex: path[TOTAL-1], number: count, pathPos: TOTAL-1 });
+
+  anchors.sort((a,b)=>a.number-b.number);
+  return anchors;
+}
+
+function generatePuzzle(seed) {
+  const rng = mulberry32(seed);
+  const path = generateHamiltonianPath(rng);
+  const anchors = placeAnchors(path, rng);
+  return { path, anchors };
+}
+
+// ═══════════════════════════════════════════════
+// EMOJI GRID FOR SHARING
+// ═══════════════════════════════════════════════
+function buildEmojiGrid(userPath, correctPath) {
+  // Mark which cells are correct (in same order as solution)
+  const correctSet = new Set(correctPath.slice(0, userPath.length));
+  const rows = [];
+  for(let r = 0; r < GRID_SIZE; r++) {
+    let row = '';
+    for(let c = 0; c < GRID_SIZE; c++) {
+      const i = idx(r,c);
+      if(userPath.includes(i)) {
+        row += correctSet.has(i) ? '🟩' : '🟥';
+      } else {
+        row += '⬜';
+      }
+    }
+    rows.push(row);
+  }
+  return rows.join('\n');
+}
+
+// ═══════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════
+const LS_KEY = 'trace_v1';
+const TODAY = todayStr();
+const SEED = dateSeed(TODAY);
+const DAY_N = dayNumber();
+
+let puzzle = null;        // { path, anchors }
+let userPath = [];        // list of cell indices in order
+let isDragging = false;
+let startTime = null;
+let endTime = null;
+let gameOver = false;
+
+// ═══════════════════════════════════════════════
+// LOCALSTORAGE
+// ═══════════════════════════════════════════════
+function saveState(finished, won, timeSec) {
+  const data = {
+    date: TODAY,
+    finished,
+    won,
+    timeSec,
+    cells: userPath.length,
+    path: userPath
+  };
+  localStorage.setItem(LS_KEY, JSON.stringify(data));
+}
+
+function loadState() {
+  try {
+    const d = JSON.parse(localStorage.getItem(LS_KEY));
+    if(d && d.date === TODAY) return d;
+    return null;
+  } catch { return null; }
+}
+
+// ═══════════════════════════════════════════════
+// DOM SETUP
+// ═══════════════════════════════════════════════
+const gridEl = document.getElementById('grid');
+const svgEl  = document.getElementById('grid-svg');
+
+let cellEls = []; // DOM elements indexed by cell index
+
+function buildGrid() {
+  gridEl.innerHTML = '';
+  cellEls = [];
+  for(let i = 0; i < TOTAL; i++) {
+    const el = document.createElement('div');
+    el.className = 'cell';
+    el.dataset.idx = i;
+
+    const anchor = puzzle.anchors.find(a => a.cellIndex === i);
+    if(anchor) {
+      el.classList.add('anchor');
+      const num = document.createElement('span');
+      num.className = 'cell-num';
+      num.textContent = anchor.number;
+      el.appendChild(num);
+    }
+
+    gridEl.appendChild(el);
+    cellEls.push(el);
+  }
+
+  // Size SVG
+  const rect = gridEl.getBoundingClientRect();
+  svgEl.setAttribute('viewBox', `0 0 ${rect.width} ${rect.height}`);
+  svgEl.style.width = rect.width + 'px';
+  svgEl.style.height = rect.height + 'px';
+}
+
+function cellCenter(i) {
+  const el = cellEls[i];
+  const gridRect = gridEl.getBoundingClientRect();
+  const cellRect = el.getBoundingClientRect();
+  return {
+    x: cellRect.left - gridRect.left + cellRect.width / 2,
+    y: cellRect.top  - gridRect.top  + cellRect.height / 2
+  };
+}
+
+function redrawPath() {
+  svgEl.innerHTML = '';
+  if(userPath.length < 2) return;
+  const pts = userPath.map(cellCenter);
+  const d = pts.map((p,i) => (i===0?'M':'L') + p.x.toFixed(1)+','+p.y.toFixed(1)).join(' ');
+  const line = document.createElementNS('http://www.w3.org/2000/svg','path');
+  line.setAttribute('d', d);
+  line.setAttribute('class', 'path-line');
+  svgEl.appendChild(line);
+}
+
+function updateCellVisuals() {
+  cellEls.forEach((el, i) => {
+    if(userPath.includes(i)) el.classList.add('filled');
+    else el.classList.remove('filled');
+  });
+  redrawPath();
+  updateProgress();
+  document.getElementById('btn-validate').disabled = userPath.length < TOTAL;
+}
+
+function updateProgress() {
+  const pct = (userPath.length / TOTAL) * 100;
+  document.getElementById('progress-bar').style.width = pct + '%';
+  document.getElementById('progress-txt').textContent = `${userPath.length} / ${TOTAL}`;
+}
+
+// ═══════════════════════════════════════════════
+// PATH LOGIC
+// ═══════════════════════════════════════════════
+
+// Get anchor constraint: when entering cell i, what anchor number must be next?
+function nextRequiredAnchor() {
+  // Find highest anchor number already in path
+  let maxNum = 0;
+  for(const ci of userPath) {
+    const a = puzzle.anchors.find(a => a.cellIndex === ci);
+    if(a && a.number > maxNum) maxNum = a.number;
+  }
+  return maxNum + 1;
+}
+
+function canAddCell(i) {
+  if(gameOver) return false;
+  if(userPath.includes(i)) {
+    // Allow backtracking: if it's the second-to-last cell, retrace
+    if(userPath.length >= 2 && userPath[userPath.length - 2] === i) return 'backtrack';
+    return false;
+  }
+  if(userPath.length === 0) return true;
+
+  // Must be adjacent to last cell
+  const last = userPath[userPath.length - 1];
+  if(!neighbors(last).includes(i)) return false;
+
+  // Anchor order constraint: if this cell is an anchor, it must be the next expected one
+  const anchor = puzzle.anchors.find(a => a.cellIndex === i);
+  if(anchor) {
+    const nextReq = nextRequiredAnchor();
+    const anchorsLeft = puzzle.anchors.filter(a => !userPath.includes(a.cellIndex));
+    if(anchorsLeft.length === 0) return true;
+    if(anchor.number !== nextReq) return false;
+  }
+
+  return true;
+}
+
+function addCell(i) {
+  const result = canAddCell(i);
+  if(result === 'backtrack') {
+    userPath.pop();
+    updateCellVisuals();
+    return;
+  }
+  if(!result) {
+    // Flash error on cell
+    const anchor = puzzle.anchors.find(a => a.cellIndex === i);
+    if(anchor) {
+      cellEls[i].classList.add('error-flash');
+      setTimeout(() => cellEls[i].classList.remove('error-flash'), 400);
+    }
+    return;
+  }
+  if(userPath.length === 0) startTime = Date.now();
+  userPath.push(i);
+  updateCellVisuals();
+}
+
+function resetPath() {
+  userPath = [];
+  updateCellVisuals();
+  document.getElementById('btn-validate').disabled = true;
+}
+
+function undoLast() {
+  if(userPath.length === 0) return;
+  // Can't undo past an anchor if it would break order — allow freely
+  userPath.pop();
+  updateCellVisuals();
+}
+
+// ═══════════════════════════════════════════════
+// VALIDATION
+// ═══════════════════════════════════════════════
+function validate() {
+  if(userPath.length < TOTAL) return;
+  endTime = Date.now();
+  gameOver = true;
+
+  // Check: anchors must appear in order
+  let anchorOrder = [];
+  for(const ci of userPath) {
+    const a = puzzle.anchors.find(a => a.cellIndex === ci);
+    if(a) anchorOrder.push(a.number);
+  }
+  const sorted = [...anchorOrder].sort((a,b)=>a-b);
+  const won = anchorOrder.every((v,i) => v === sorted[i]);
+
+  const timeSec = Math.round((endTime - startTime) / 1000);
+  saveState(true, won, timeSec);
+  showResult(won, timeSec);
+}
+
+// ═══════════════════════════════════════════════
+// RESULT
+// ═══════════════════════════════════════════════
+function showResult(won, timeSec) {
+  document.getElementById('actions').style.display = 'none';
+
+  const panel = document.getElementById('result-panel');
+  panel.classList.add('visible');
+
+  document.getElementById('result-title').textContent = won ? 'Résolu !' : 'Incomplet';
+  document.getElementById('result-subtitle').textContent =
+    won ? `Puzzle #${DAY_N} — ${TODAY}` : `Puzzle #${DAY_N} — Chemin incorrect`;
+
+  // Emoji grid
+  const emojiGrid = buildEmojiGrid(userPath, puzzle.path);
+  document.getElementById('result-emoji').textContent =
+    won ? (timeSec < 60 ? '⚡' : '✓') : '✗';
+
+  document.getElementById('stat-cells').textContent = `${userPath.length} / ${TOTAL}`;
+  document.getElementById('stat-time').textContent = formatTime(timeSec);
+
+  startCountdown();
+}
+
+function formatTime(sec) {
+  if(sec < 60) return sec + 's';
+  return Math.floor(sec/60) + 'm ' + (sec%60) + 's';
+}
+
+function buildShareText(won, timeSec) {
+  const emojiGrid = buildEmojiGrid(userPath, puzzle.path);
+  const url = location.href.split('?')[0];
+  return `TRACE #${DAY_N} — ${won ? '✅ Résolu' : '❌ Échoué'} en ${formatTime(timeSec)}\n\n${emojiGrid}\n\n→ ${url}`;
+}
+
+// ═══════════════════════════════════════════════
+// COUNTDOWN
+// ═══════════════════════════════════════════════
+function startCountdown() {
+  function tick() {
+    const ms = msUntilMidnight();
+    const str = formatCountdown(ms);
+    const el1 = document.getElementById('countdown-val');
+    const el2 = document.getElementById('countdown-val2');
+    if(el1) el1.textContent = str;
+    if(el2) el2.textContent = str;
+  }
+  tick();
+  setInterval(tick, 1000);
+}
+
+// ═══════════════════════════════════════════════
+// ALREADY PLAYED SCREEN
+// ═══════════════════════════════════════════════
+function showAlreadyPlayed(saved) {
+  document.getElementById('grid-wrap').style.display = 'none';
+  document.getElementById('progress-wrap').style.display = 'none';
+  document.getElementById('actions').style.display = 'none';
+  document.getElementById('instructions').style.display = 'none';
+
+  const screen = document.getElementById('already-screen');
+  screen.classList.add('visible');
+
+  document.getElementById('already-emoji').textContent = saved.won ? '🟩' : '🟥';
+  document.getElementById('already-title').textContent =
+    saved.won ? 'Puzzle résolu !' : 'Puzzle tenté';
+  document.getElementById('already-sub').textContent =
+    `${TODAY} · Puzzle #${DAY_N} · ${formatTime(saved.timeSec)}`;
+
+  // Show emoji grid
+  userPath = saved.path;
+  const emojiGrid = buildEmojiGrid(saved.path, puzzle.path);
+  document.getElementById('already-result').innerHTML =
+    `<pre style="font-size:13px;line-height:1.4;margin-top:8px">${emojiGrid}</pre>`;
+
+  document.getElementById('btn-share-already').addEventListener('click', () => {
+    const text = buildShareText(saved.won, saved.timeSec);
+    navigator.clipboard?.writeText(text).then(() => showToast('Copié ✓'))
+      .catch(() => prompt('Copie ce texte :', text));
+  });
+
+  startCountdown();
+}
+
+// ═══════════════════════════════════════════════
+// TOAST
+// ═══════════════════════════════════════════════
+function showToast(msg, dur = 2200) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(t._tid);
+  t._tid = setTimeout(() => t.classList.remove('show'), dur);
+}
+
+// ═══════════════════════════════════════════════
+// DRAG INPUT (mouse + touch)
+// ═══════════════════════════════════════════════
+function cellFromPoint(x, y) {
+  const el = document.elementFromPoint(x, y);
+  if(!el) return null;
+  const cell = el.closest('.cell');
+  if(!cell) return null;
+  return parseInt(cell.dataset.idx);
+}
+
+let lastDragCell = -1;
+
+function onDragStart(x, y) {
+  if(gameOver) return;
+  isDragging = true;
+  lastDragCell = -1;
+  const i = cellFromPoint(x, y);
+  if(i !== null && i !== undefined) {
+    // If tapping on a cell already in path, retrace from there
+    if(userPath.includes(i)) {
+      const pos2 = userPath.indexOf(i);
+      // Can't retrace past an anchor
+      const anchor = puzzle.anchors.find(a => a.cellIndex === i);
+      if(!anchor || pos2 === 0) {
+        userPath = userPath.slice(0, pos2 + 1);
+        updateCellVisuals();
+        lastDragCell = i;
+        return;
+      }
+    }
+    addCell(i);
+    lastDragCell = i;
+  }
+}
+
+function onDragMove(x, y) {
+  if(!isDragging || gameOver) return;
+  const i = cellFromPoint(x, y);
+  if(i === null || i === undefined || i === lastDragCell) return;
+  lastDragCell = i;
+
+  // Backtrack support: if dragging back onto second-to-last
+  if(userPath.length >= 2 && userPath[userPath.length - 2] === i) {
+    userPath.pop();
+    updateCellVisuals();
+    return;
+  }
+  addCell(i);
+}
+
+function onDragEnd() {
+  isDragging = false;
+}
+
+// Mouse
+gridEl.addEventListener('mousedown', e => { e.preventDefault(); onDragStart(e.clientX, e.clientY); });
+window.addEventListener('mousemove', e => { if(isDragging) onDragMove(e.clientX, e.clientY); });
+window.addEventListener('mouseup', onDragEnd);
+
+// Touch
+gridEl.addEventListener('touchstart', e => {
+  e.preventDefault();
+  const t = e.touches[0];
+  onDragStart(t.clientX, t.clientY);
+}, { passive: false });
+
+gridEl.addEventListener('touchmove', e => {
+  e.preventDefault();
+  const t = e.touches[0];
+  onDragMove(t.clientX, t.clientY);
+}, { passive: false });
+
+gridEl.addEventListener('touchend', e => {
+  e.preventDefault();
+  onDragEnd();
+}, { passive: false });
+
+// ═══════════════════════════════════════════════
+// BUTTONS
+// ═══════════════════════════════════════════════
+document.getElementById('btn-undo').addEventListener('click', undoLast);
+document.getElementById('btn-reset').addEventListener('click', resetPath);
+document.getElementById('btn-validate').addEventListener('click', validate);
+
+document.getElementById('btn-share-result').addEventListener('click', () => {
+  const saved = loadState();
+  if(!saved) return;
+  const text = buildShareText(saved.won, saved.timeSec);
+  navigator.clipboard?.writeText(text).then(() => showToast('Copié ✓'))
+    .catch(() => prompt('Copie ce texte :', text));
+});
+
+document.getElementById('btn-show-solution').addEventListener('click', () => {
+  // Reveal solution path
+  userPath = [...puzzle.path];
+  updateCellVisuals();
+  // Disable further input
+  gameOver = true;
+  showToast('Solution affichée');
+  document.getElementById('btn-show-solution').disabled = true;
+});
+
+// ═══════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════
+function init() {
+  // Day label
+  document.getElementById('day-label').textContent =
+    `Puzzle #${DAY_N} · ${TODAY}`;
+
+  // Generate puzzle
+  puzzle = generatePuzzle(SEED);
+
+  // Check if already played today
+  const saved = loadState();
+  if(saved && saved.finished) {
+    buildGrid(); // still need grid for emoji generation
+    showAlreadyPlayed(saved);
+    return;
+  }
+
+  // Resume in-progress
+  if(saved && saved.path && saved.path.length > 0 && !saved.finished) {
+    buildGrid();
+    userPath = saved.path;
+    startTime = Date.now() - (saved.timeSec || 0) * 1000;
+    updateCellVisuals();
+    // Auto-save in progress periodically
+    setInterval(() => {
+      if(!gameOver) saveState(false, false, Math.round((Date.now() - startTime) / 1000));
+    }, 5000);
+    return;
+  }
+
+  buildGrid();
+  updateCellVisuals();
+
+  // Auto-save in progress
+  setInterval(() => {
+    if(!gameOver && userPath.length > 0) {
+      saveState(false, false, startTime ? Math.round((Date.now() - startTime) / 1000) : 0);
+    }
+  }, 5000);
+}
+
+// Resize SVG when fonts load
+document.fonts.ready.then(() => {
+  init();
+});
+</script>
+</body>
+</html>
